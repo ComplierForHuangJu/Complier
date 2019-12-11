@@ -9,7 +9,7 @@ import java.io.RandomAccessFile;
 public class LexicalAnalyzer {
 
 /* 关键字表 */
- public static ArrayList<Token> KEYTABLE = new ArrayList<>();
+ public static ArrayList<Token> KEYTABLE1 = new ArrayList<>();
 /* 界符表 */
 public static ArrayList<Token> DELIMITABLE = new ArrayList<>();
 /* 符号表 */
@@ -312,7 +312,7 @@ public ArrayList<Token> CharTable = new ArrayList<>();
 		}	
 		return token;
 	}
->>>>>>> huang
+
 	
 }
 
