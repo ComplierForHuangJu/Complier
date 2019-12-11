@@ -20,7 +20,8 @@ public class LexicalAnalyzer {
 	private static String[] KEYTABLE = new String[34];
 	private static String[] DELIMITERTABLE = new String[40];
 	private ArrayList<Token> symbolTable = new ArrayList<>(); 
-	private ArrayList<Token> constantTable = new ArrayList<>();
+	private ArrayList<Integer> constantTable1 = new ArrayList<>();
+	private ArrayList<Float> constantTable2 = new ArrayList<>();
 	private ArrayList<String> charTable = new ArrayList<>();
 	private ArrayList<String> stringTable = new ArrayList<>();
 	private ArrayList<Token> tokens = new ArrayList<>();
@@ -59,6 +60,29 @@ public class LexicalAnalyzer {
 		if (ch >= 48 && ch <= 57) return true;
 		else return false;
 	}
+	
+	//判断是否在整数常量表里，若不在则添加到表尾,并返回n在表中的位置
+	public int constantList(int n) {
+		int i;
+		i = constantTable1.indexOf(n);
+		if(i!=-1)return i;
+		else {
+			constantTable1.add(n);
+			return constantTable1.size()-1;
+		}
+	}
+	
+	//判断是否在小数常量表里，若不在则添加到表尾,并返回n在表中的位置
+		public int constantList(float n) {
+			int i;
+			i = constantTable2.indexOf(n);
+			if(i!=-1)return i;
+			else {
+				constantTable2.add(n);
+				return constantTable2.size()-1;
+			}
+		}
+	
 	//判断字符c是否是界符
 	public boolean isDelimiter(char c) {
 		int i;
@@ -106,6 +130,7 @@ public class LexicalAnalyzer {
 		char ch;//当前所读字符
 		Token token = new Token();
 		String str=null;//保存此次扫描拼写出的单词
+		DFA d=new DFA();
 		//打开扫描文件
 		File file=new File(this.fileName);
 		try {
@@ -123,7 +148,8 @@ public class LexicalAnalyzer {
 			}
 			//读到的第一个字符为字母或是下划线：关键字或是标识符
 			if(isCharacter(ch)) {
-				DFA.kriDFA dfa;
+			    DFA.kriDFA dfa=d.new kriDFA();
+				//DFA.kriDFA dfa=null;
 				while(nowState!=3&&nowState!=0&&rfile.getFilePointer()!=l+1) {
 					nowState=dfa.getState(nowState,dfa.getVn(ch));
 					str=str+ch;
@@ -151,9 +177,10 @@ public class LexicalAnalyzer {
 			}
 			//若第一个字符为数字，则可能为数字常量	
 			else if(isNumber(ch)) {
-				DFA.nconDFA dfa;
+				DFA.nconDFA dfa=d.new nconDFA();
+				float num;
 				while(nowState!=4&&nowState!=6&&nowState!=0&&rfile.getFilePointer()!=l+1) {
-					nowState=dfa.getState(nowState,dfa.getVn(ch));
+					nowState=dfa.getState(nowState,dfa.getVn(ch),ch);
 					str=str+ch;
 					ch=rfile.readChar();	
 					}
@@ -161,19 +188,30 @@ public class LexicalAnalyzer {
 				if(nowState!=4&&nowState!=6) token=null;
 				//否则，接受此单词，且生成相应token串，填写常量表
 				else {
-					str=(String) str.subSequence(0, str.length()-1);
-					int j = constantList(str);
-					Token.TYPE t=Token.TYPE.nc;
-					System.out.println("(nc,"+j+")");
-					token.settype(t);
-					token.setindex(j);
-					token.setlastState(nowState);
-					this.tokens.add(token);
+					num=dfa.getValue();
+					if(nowState==4) {
+						int j=constantList((int)num);
+						Token.TYPE t=Token.TYPE.inc;
+						System.out.println("(inc,"+j+")");
+						token.settype(t);
+						token.setindex(j);
+						token.setlastState(nowState);
+						this.tokens.add(token);
+					}
+					else {
+						int j=constantList(num);
+						Token.TYPE t=Token.TYPE.fnc;
+						System.out.println("(fnc,"+j+")");
+						token.settype(t);
+						token.setindex(j);
+						token.setlastState(nowState);
+						this.tokens.add(token);
+					}
 				}
 			}
 			//若读入字符为‘，则可能是字符常量
 		    else if(ch == 39) {
-		    	DFA.cconDFA dfa;
+		    	DFA.cconDFA dfa=d.new cconDFA();
 		    	//特殊情况是遇到回车，则结束判断
 				while(nowState!=5&&nowState!=0&&rfile.getFilePointer()!=l+1&&ch!='\n') {
 					nowState=dfa.getState(nowState,dfa.getVn(ch));
@@ -196,7 +234,7 @@ public class LexicalAnalyzer {
 		    }
 			//若读入的第一个字符是"，则可能是字符串常量
 			else if(ch == 34) {
-				DFA.sconDFA dfa;
+				DFA.sconDFA dfa=d.new sconDFA();
 		    	//特殊情况是遇到回车，则结束判断
 				while(nowState!=2&&nowState!=0&&rfile.getFilePointer()!=l+1&&ch!='\n') {
 					nowState=dfa.getState(nowState,dfa.getVn(ch));
@@ -224,23 +262,27 @@ public class LexicalAnalyzer {
 					str=str+ch;
 					//是双目界符，生成相应token串
 					if(isDelimiter(str)!=0) {
+						nowState=1;
 						int j = isDelimiter(str);
 						Token.TYPE t=Token.TYPE.p;
 						System.out.println("(p,"+j+")");
 						token.settype(t);
 						token.setindex(j);
+						token.setlastState(nowState);
 						this.tokens.add(token);
 					}
 					else token=null;
 				}
 				//是单目界符
 				else {
+					nowState=7;
 					str=str+ch;
 					int j = isDelimiter(str);
 					Token.TYPE t=Token.TYPE.p;
 					System.out.println("(p,"+j+")");
 					token.settype(t);
 					token.setindex(j);
+					token.setlastState(nowState);
 					this.tokens.add(token);
 				}
 			}

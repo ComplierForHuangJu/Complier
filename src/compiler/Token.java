@@ -10,7 +10,7 @@ public class Token {
 	 * */
 	public enum TYPE
 	{
-		k,i,nc,cc,sc,p
+		k,i,inc,fnc,cc,sc,p
 	}
 	private TYPE type;
 	private int index;
