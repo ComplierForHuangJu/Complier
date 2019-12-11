@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class LexicalAnalyzer {
-<<<<<<< HEAD
+
 /* 关键字表 */
  public static ArrayList<Token> KEYTABLE = new ArrayList<>();
 /* 界符表 */
@@ -24,8 +24,7 @@ public ArrayList<Token> StringTable = new ArrayList<>();
 /* 字符表  */
 public ArrayList<Token> CharTable = new ArrayList<>();
 
-//这是张洪洋的分支  
-=======
+
 	/* 
 	 * KEYTABLE---关键字表
 	 * DELIMITABLE---界符表
