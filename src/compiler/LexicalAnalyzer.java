@@ -207,6 +207,7 @@ public class LexicalAnalyzer {
 						token.settype(t);
 						token.setindex(j);
 						token.setlastState(nowState);
+						token.setSvalue(str);
 						this.tokens.add(token);
 					}
 					//否则str是标识符
@@ -217,6 +218,7 @@ public class LexicalAnalyzer {
 						token.settype(t);
 						token.setindex(j);
 						token.setlastState(nowState);
+						token.setSvalue(str);
 						this.tokens.add(token);
 					}
 				}
@@ -246,6 +248,7 @@ public class LexicalAnalyzer {
 						token.settype(t);
 						token.setindex(j);
 						token.setlastState(nowState);
+						token.setIvalue((int)num);
 						this.tokens.add(token);
 					}
 					else {
@@ -255,6 +258,7 @@ public class LexicalAnalyzer {
 						token.settype(t);
 						token.setindex(j);
 						token.setlastState(nowState);
+						token.setFvalue(num);
 						this.tokens.add(token);
 					}
 				}
@@ -283,6 +287,7 @@ public class LexicalAnalyzer {
 					token.settype(t);
 					token.setindex(j);
 					token.setlastState(nowState);
+					token.setSvalue(str);
 					this.tokens.add(token);
 				}
 		    }
@@ -310,6 +315,7 @@ public class LexicalAnalyzer {
 					token.settype(t);
 					token.setindex(j);
 					token.setlastState(nowState);
+					token.setSvalue(str);
 					this.tokens.add(token);
 				}
 			}
@@ -332,6 +338,7 @@ public class LexicalAnalyzer {
 						token.settype(t);
 						token.setindex(j);
 						token.setlastState(nowState);
+						token.setSvalue(str);
 						this.tokens.add(token);
 					}
 					else token=null;
@@ -346,6 +353,7 @@ public class LexicalAnalyzer {
 					token.settype(t);
 					token.setindex(j);
 					token.setlastState(nowState);
+					token.setSvalue(str);
 					this.tokens.add(token);
 				}
 			}
@@ -358,6 +366,7 @@ public class LexicalAnalyzer {
 		}	
 		return token;
 	}
+	
 	//在文件最后添加结束符号#
 	public void addEnd() {
 		FileWriter fw;
@@ -368,10 +377,39 @@ public class LexicalAnalyzer {
 			pw.close ();
 			fw.close ();
 		} catch (IOException e) {
-			// TODO 自动生成的 catch 块
 			e.printStackTrace();
 		}
 		
+	}
+	
+	//根据标号i得到相应关键字
+	public String getKey(int i) {
+		return KEYTABLE[i];
+	}
+	
+	//根据标号i得到相应界符
+	public String getDelimiter(int i) {
+		return DELIMITERTABLE[i];
+	}
+	
+	//根据标号i得到相应整型数字常量
+	public Integer getInc(int i) {
+		return constantTable1.get(i);
+	}
+	
+	//根据标号i得到相应实型数字常量
+	public Float getFnc(int i) {
+		return constantTable2.get(i);
+	}
+	
+	//根据标号i得到相应字符常量
+	public String getChar(int i) {
+		return charTable.get(i);
+	}
+	
+	//根据标号i得到相应字符串常量
+	public String getString(int i) {
+		return stringTable.get(i);
 	}
 	
 }
