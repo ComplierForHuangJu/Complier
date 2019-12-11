@@ -2,23 +2,35 @@ package compiler;
 
 public class Token {
 
-	private enum TYPE
+	/*
+	 * type 记录类型
+	 * index 记录表中位置
+	 * lastState 记录其在自动机中最后的状态
+	 * 
+	 * */
+	public enum TYPE
 	{
-		
+		k,i,inc,fnc,cc,sc,p
 	}
-	private TYPE _type;
-	private int _index;
-	public TYPE get_type() {
-		return _type;
+	private TYPE type;
+	private int index;
+	private int lastState;
+	
+	
+	public TYPE gettype() {
+		return type;
 	}
-	public void set_type(TYPE _type) {
-		this._type = _type;
+	public void settype(TYPE type) {
+		this.type = type;
 	}
-	public int get_index() {
-		return _index;
+	public int getindex() {
+		return index;
 	}
-	public void set_index(int _index) {
-		this._index = _index;
+	public void setindex(int index) {
+		this.index = index;
+	}
+	public void setlastState(int state) {
+		this.lastState = state;
 	}
 	
 	
