@@ -15,6 +15,7 @@ public class Token {
 	private TYPE type;
 	private int index;
 	private int lastState;
+	private String value;
 	
 	
 	public TYPE gettype() {
@@ -31,6 +32,12 @@ public class Token {
 	}
 	public void setlastState(int state) {
 		this.lastState = state;
+	}
+	public String getValue() {
+		return value;
+	}
+	public void setValue(String value) {
+		this.value = value;
 	}
 	
 	

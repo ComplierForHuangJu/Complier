@@ -10,6 +10,9 @@ public class Quat {
 	public Token ope2;
 	public Token res;
 	
+	
+	
+	
 	public Quat(Token opc, Token ope1, Token ope2, Token res) {
 		super();
 		this.opc = opc;
@@ -18,6 +21,5 @@ public class Quat {
 		this.res = res;
 	}
 
-	//li分支增加一条注释 
 	
 }

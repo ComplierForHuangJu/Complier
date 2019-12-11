@@ -1,16 +1,17 @@
+
 package compiler;
 
 import java.util.HashMap;
 public class DFA {
 
-	//¹Ø¼ü×Ö»ò±êÊ¶·ûµÄ×Ô¶¯»ú
+	//éæŠ½æ•­ç€›æ¥åž¨éå›ªç˜‘ç»—ï¸¾æ®‘é‘·î„å§©éˆï¿½
 	public class kriDFA{
 		private int map[][]= {{0,0,0,0},{0,1,0,0},{0,2,2,3},{0,0,0,0}};
 		
 	    public int getVn(char c) {
-	    	if ((c >= 65 && c <= 106) || (c >= 97 && c <= 122) || (c == 95))return 1;//×ÖÄ¸»òÏÂ»®Ïß
-	    	else if ((c >= 48 && c <= 57))return 2;//Êý×Ö
-	    	else  return 3;//ºó¼Ì·û
+	    	if ((c >= 65 && c <= 106) || (c >= 97 && c <= 122) || (c == 95))return 1;//ç€›æ¥ç˜éŽ´æ ¦ç¬…é’æŽ”åšŽ
+	    	else if ((c >= 48 && c <= 57))return 2;//éæ¿ç“§
+	    	else  return 3;//éšåº£æˆ·ç»—ï¿½
 	    }
 		
 		public int getState(int i,int j) {
@@ -21,12 +22,12 @@ public class DFA {
 	
 	public class nconDFA{
 		/*
-		 * map[][]---±ä»»±í
-		 * n---Î²ÊýÖµ±äÁ¿
-		 * p---Ö¸ÊýÖµ±äÁ¿
-		 * m---Ð¡ÊýÎ»Êý±äÁ¿
-		 * e---Ö¸ÊýµÄ·ûºÅ±äÁ¿
-		 * value---×îÖÕ³£ÊýÖµ
+		 * map[][]---é™æ¨»å´²ç›ï¿½
+		 * n---çç‚¬æšŸéŠç…Žå½‰é–²ï¿½
+		 * p---éŽ¸å›¨æšŸéŠç…Žå½‰é–²ï¿½
+		 * m---çå¿”æšŸæµ£å¶†æšŸé™æ©€å™º
+		 * e---éŽ¸å›¨æšŸé¨å‹­îƒé™å³°å½‰é–²ï¿½
+		 * value---éˆï¿½ç¼å çˆ¶éæ¿ï¿½ï¿½
 		 */
 		private int map[][]= {{0,0,0,0,0,0},{0,2,0,0,0,0},{0,2,3,7,4,4},{0,5,0,0,0,0},
 				{0,0,0,0,0,0},{0,5,6,7,6,6},{0,0,0,0,0,0},{0,8,0,0,9,0},{0,8,6,6,6,6},{0,8,0,0,0,0}};
@@ -37,14 +38,14 @@ public class DFA {
 		private float value;
 		
 	    public int getVn(char c) {
-	    	if ((c >= 48 && c <= 57))return 1;//Êý×Ö
+	    	if ((c >= 48 && c <= 57))return 1;//éæ¿ç“§
 	    	else if(c=='.')return 2;
 	    	else if(c=='e'||c=='E')return 3;
 	    	else if (c=='+'||c=='-')return 4;
-	    	else  return 5;//ºó¼Ì·û
+	    	else  return 5;//éšåº£æˆ·ç»—ï¿½
 	    }
 	    
-	    //³£ÊýµÄ·­ÒëÆ÷
+	    //ç”¯å‘ŠæšŸé¨å‹­ç‚•ç’‡æˆæ«’
 	    public void tran(int i,char c) {
 	    	if(i==2) {
 	    		n=10*n+(c-48);
@@ -62,13 +63,13 @@ public class DFA {
 	    	}
 	    }
 		
-	    //×´Ì¬×ª»»£¬iÊÇµ±Ç°×´Ì¬£¬jÊÇ¶ÁÈë×Ö·û±àÂë£¬cÊÇµ±Ç°Ëù¶Á×Ö·û
+	    //é˜èˆµï¿½ä½½æµ†éŽ¹î®ç´ié„îˆšç¶‹é“å¶‡å§¸éŽ¬ä¾Šç´jé„îˆî‡°éãƒ¥ç“§ç»—ï¸¾ç´ªé®ä¾Šç´cé„îˆšç¶‹é“å¶†å¢ç’‡è¯²ç“§ç»—ï¿½
 		public int getState(int i,int j,char c) {
 			tran(map[i][j],c);
 			return map[i][j];
 		}  
 		
-		//Ëã³ö×îºóµÄ³£ÊýÖµ
+		//ç» æ¥€åš­éˆï¿½éšåº£æ®‘ç”¯å‘ŠæšŸéŠï¿½
 		public float getValue() {
 			int i,j;
 			j=this.e*this.p-this.m;
@@ -79,14 +80,14 @@ public class DFA {
 		
 	}
 	
-	//Ê¶±ð×Ö·û³£Á¿
+	//ç’‡å——åŸ†ç€›æ¥ƒîƒç”¯æå™º
 	public class cconDFA{
 		private int map[][]= {{0,0,0,0},{0,2,0,0},{0,4,3,6},{0,4,0,0},
 				{0,5,5,5},{0,0,0,0},{0,8,7,7},{0,4,0,0},{0,4,0,0}};
 		
 	    public int getVn(char c) {
 	    	if (c==39 )return 1;//'
-	    	else if(c=='\\')return 3;//¡®\¡¯
+	    	else if(c=='\\')return 3;//éˆ¥æ¦Žéˆ¥ï¿½
 	    	else return 2;
 	    }
 		
@@ -94,7 +95,7 @@ public class DFA {
 			return map[i][j];
 		}  
 	}
-	//Ê¶±ð×Ö·û´®³£Á¿
+	//ç’‡å——åŸ†ç€›æ¥ƒîƒæ¶“æ’çˆ¶é–²ï¿½
 	public class sconDFA{
 		private int map[][]= {{0,0,0,0},{0,4,0,0},{0,0,0,0},{0,2,2,2},
 				{0,3,5,4},{0,4,4,4}};
@@ -110,3 +111,4 @@ public class DFA {
 		}  
 	}
 }
+
