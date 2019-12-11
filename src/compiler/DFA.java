@@ -5,7 +5,7 @@ public class DFA {
 
 	//关键字或标识符的自动机
 	public class kriDFA{
-		private int map[][]= {{0,0,0,0},{0,1,0,0},{0,2,2,3},{0,0,0,0}};
+		private int map[][]= {{0,0,0,0},{0,2,0,0},{0,2,2,3},{0,0,0,0}};
 		
 	    public int getVn(char c) {
 	    	if ((c >= 65 && c <= 106) || (c >= 97 && c <= 122) || (c == 95))return 1;//字母或下划线
@@ -51,6 +51,7 @@ public class DFA {
 	    	}
 	    	else if(i==5) {
 	    		n=10*n+(c-48);
+	    		m=m+1;
 	    	}
 	    	else if(i==8) {
 	    		p=10*p+(c-48);
