@@ -3,13 +3,13 @@ package compiler;
 public class Token {
 
 	/*
-	 * k---å…³é”®å­—
-	 * i---æ ‡è¯†ç¬¦
-	 * inc---æ•´å‹æ•°å­—å¸¸é‡
-	 * fnc---å®å‹å­—ç¬¦å¸¸é‡
-	 * cc---å­—ç¬¦å¸¸é‡
-	 * sc---å­—ç¬¦ä¸²å¸¸é‡
-	 * p---ç•Œç¬¦
+	 * k---¹Ø¼ü×Ö
+	 * i---±êÊ¶·û
+	 * inc---ÕûĞÍÊı×Ö³£Á¿
+	 * fnc---ÊµĞÍ×Ö·û³£Á¿
+	 * cc---×Ö·û³£Á¿
+	 * sc---×Ö·û´®³£Á¿
+	 * p---½ç·û
 	 *  
 	 */
 	public enum TYPE
@@ -17,24 +17,20 @@ public class Token {
 		k,i,inc,fnc,cc,sc,p
 	}
 	/*
-	 * type---è®°å½•ç±»å‹
-	 * index---è®°å½•è¡¨ä¸­ä½ç½®
-	 * lastState---è®°å½•å…¶åœ¨è‡ªåŠ¨æœºä¸­æœ€åçš„çŠ¶æ€
-	 * svalue---è‹¥æ˜¯å…³é”®å­—/æ ‡è¯†ç¬¦/å­—ç¬¦å¸¸é‡/å­—ç¬¦ä¸²å¸¸é‡/ç•Œç¬¦ ,åˆ™æ­¤å˜é‡ä¸ºå…¶å€¼
-	 * ivalue---è‹¥æ˜¯æ•´å‹æ•°å­—å˜é‡ ,åˆ™æ­¤å˜é‡ä¸ºå…¶å€¼
-	 * fvalue---è‹¥æ˜¯å®å‹æ•°å­—å¸¸é‡,åˆ™æ­¤å˜é‡ä¸ºå…¶å€¼
+	 * type---¼ÇÂ¼ÀàĞÍ
+	 * index---¼ÇÂ¼±íÖĞÎ»ÖÃ
+	 * lastState---¼ÇÂ¼ÆäÔÚ×Ô¶¯»úÖĞ×îºóµÄ×´Ì¬
+	 * svalue---ÈôÊÇ¹Ø¼ü×Ö/±êÊ¶·û/×Ö·û³£Á¿/×Ö·û´®³£Á¿/½ç·û ,Ôò´Ë±äÁ¿ÎªÆäÖµ
+	 * ivalue---ÈôÊÇÕûĞÍÊı×Ö±äÁ¿ ,Ôò´Ë±äÁ¿ÎªÆäÖµ
+	 * fvalue---ÈôÊÇÊµĞÍÊı×Ö³£Á¿,Ôò´Ë±äÁ¿ÎªÆäÖµ
 	 * */
 	private TYPE type;
 	private int index;
 	private int lastState;
-
 	private String svalue;
 	private int ivalue;
 	private float fvalue;
-
-	private String value;
 	
-
 	public TYPE gettype() {
 		return type;
 	}
@@ -50,7 +46,6 @@ public class Token {
 	public void setlastState(int state) {
 		this.lastState = state;
 	}
-
 	public String getSvalue() {
 		return svalue;
 	}
@@ -68,13 +63,6 @@ public class Token {
 	}
 	public void setFvalue(float fvalue) {
 		this.fvalue = fvalue;
-
-	public String getValue() {
-		return value;
-	}
-	public void setValue(String value) {
-		this.value = value;
-
 	}
 	
 	
