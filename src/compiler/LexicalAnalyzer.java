@@ -1,144 +1,130 @@
+
 package compiler;
 
 import java.util.ArrayList;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 
 public class LexicalAnalyzer {
+
+/* å…³é”®å­—è¡¨ */
+ public static ArrayList<Token> KEYTABLE1 = new ArrayList<>();
+/* ç•Œç¬¦è¡¨ */
+public static ArrayList<Token> DELIMITABLE = new ArrayList<>();
+/* ç¬¦å·è¡¨ */
+public ArrayList<Token> SymbolTable = new ArrayList<>(); 
+
+/* å¸¸é‡è¡¨ */
+public ArrayList<Token> ConstTable = new ArrayList<>();
+
+/* å­—ç¬¦ä¸²è¡¨ */
+public ArrayList<Token> StringTable = new ArrayList<>();
+
+/* å­—ç¬¦è¡¨  */
+public ArrayList<Token> CharTable = new ArrayList<>();
+
+
 	/* 
-	 * KEYTABLE---¹Ø¼ü×Ö±í
-	 * DELIMITABLE---½ç·û±í
-	 * symbolTable---·ûºÅ±í
-	 * constantTable---³£Á¿±í
-	 * stringTable---×Ö·û´®±í
-	 * charTable---×Ö·û±í
-	 * token---token´®¼¯ºÏ
-	 * fileName---ËùÒª·ÖÎöµÄÔ´³ÌĞòµÄÎÄ¼şÃû
-	 * filePointer---Ëù¶ÁÎÄ¼şµÄÖ¸Õë
+	 * KEYTABLE---å…³é”®å­—è¡¨
+	 * DELIMITABLE---ç•Œç¬¦è¡¨
+	 * symbolTable---ç¬¦å·è¡¨
+	 * constantTable---å¸¸é‡è¡¨
+	 * stringTable---å­—ç¬¦ä¸²è¡¨
+	 * charTable---å­—ç¬¦è¡¨
+	 * token---tokenä¸²é›†åˆ
+	 * 
 	 *  */
 	private static String[] KEYTABLE = new String[34];
 	private static String[] DELIMITERTABLE = new String[40];
-	private ArrayList<String> identifierTable = new ArrayList<>();
-	//private ArrayList<Token> symbolTable = new ArrayList<>(); 
+	private ArrayList<Token> symbolTable = new ArrayList<>(); 
 	private ArrayList<Integer> constantTable1 = new ArrayList<>();
 	private ArrayList<Float> constantTable2 = new ArrayList<>();
 	private ArrayList<String> charTable = new ArrayList<>();
 	private ArrayList<String> stringTable = new ArrayList<>();
 	private ArrayList<Token> tokens = new ArrayList<>();
+	
+	/*
+	 * fileName---æ‰€è¦åˆ†æçš„æºç¨‹åºçš„æ–‡ä»¶å
+	 * filePointer---æ‰€è¯»æ–‡ä»¶çš„æŒ‡é’ˆ
+	 * 
+	 */
 	private String fileName;
-	private long filePointer;
-
-	//¹¹Ôìº¯Êı
+	private int filePointer;
+	//æ„é€ å‡½æ•°
 	public LexicalAnalyzer(String name) {
-		//³õÊ¼»¯¹Ø¼ü×Ö±íºÍ½ç·û±í
-		File file=new File("keyword.txt");
-		int i=1;
-		try {
-			BufferedReader reader =new BufferedReader(new FileReader(file));
-			for(i=1;i<34;i++) {
-				String str = reader.readLine();
-				KEYTABLE[i]=str;
-			}
-			reader.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		file=new File("delimiter.txt");
-		try {
-			BufferedReader reader =new BufferedReader(new FileReader(file));
-			for(i=1;i<40;i++) {
-				String str = reader.readLine();
-				DELIMITERTABLE[i]=str;
-			}
-			reader.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		
 		this.fileName=name;
 		filePointer=0;
 	}
-	//ÅĞ¶ÏchÊÇ·ñÊÇ×ÖÄ¸»òÏÂ»®Ïß
+	//åˆ¤æ–­chæ˜¯å¦æ˜¯å­—æ¯æˆ–ä¸‹åˆ’çº¿
 	public boolean isCharacter(char ch) {
 		if ((ch >= 65 && ch <= 106) || (ch >= 97 && ch <= 122) || (ch == 95)) { return true; }
 		else return false;
 	}
 	
-	//ÅĞ¶ÏÊÇ·ñÊÇ¹Ø¼ü×Ö£¬²¢·µ»Ø±íÖĞÎ»ÖÃ
+	//åˆ¤æ–­æ˜¯å¦æ˜¯å…³é”®å­—ï¼Œå¹¶è¿”å›è¡¨ä¸­ä½ç½®
 	public int isKey(String str) {
 		int i;
 		for (i = 1; i <= 33; i++) {
-			if (str.equals(KEYTABLE[i])) break;
+			if (str == KEYTABLE[i]) break;
 		}
 		if (i <= 33) return i;
 		else return 0;
 	}
 	
-	//ÅĞ¶ÏchÊÇ·ñÊÇÊı×Ö
+	//åˆ¤æ–­chæ˜¯å¦æ˜¯æ•°å­—
 	public boolean isNumber(char ch) {
 		if (ch >= 48 && ch <= 57) return true;
 		else return false;
 	}
 	
-	//ÅĞ¶ÏÊÇ·ñÔÚÕûÊı³£Á¿±íÀï£¬Èô²»ÔÚÔòÌí¼Óµ½±íÎ²,²¢·µ»ØnÔÚ±íÖĞµÄÎ»ÖÃ
+	//åˆ¤æ–­æ˜¯å¦åœ¨æ•´æ•°å¸¸é‡è¡¨é‡Œï¼Œè‹¥ä¸åœ¨åˆ™æ·»åŠ åˆ°è¡¨å°¾,å¹¶è¿”å›nåœ¨è¡¨ä¸­çš„ä½ç½®
 	public int constantList(int n) {
 		int i;
 		i = constantTable1.indexOf(n);
-		if(i!=-1)return i+1;
+		if(i!=-1)return i;
 		else {
 			constantTable1.add(n);
-			return constantTable1.size();
+			return constantTable1.size()-1;
 		}
 	}
 	
-	//ÅĞ¶ÏÊÇ·ñÔÚĞ¡Êı³£Á¿±íÀï£¬Èô²»ÔÚÔòÌí¼Óµ½±íÎ²,²¢·µ»ØnÔÚ±íÖĞµÄÎ»ÖÃ
-	public int constantList(float n) {
-		int i;
-		i = constantTable2.indexOf(n);
-		if(i!=-1)return i+1;
-		else {
-			constantTable2.add(n);
-			return constantTable2.size();
+	//åˆ¤æ–­æ˜¯å¦åœ¨å°æ•°å¸¸é‡è¡¨é‡Œï¼Œè‹¥ä¸åœ¨åˆ™æ·»åŠ åˆ°è¡¨å°¾,å¹¶è¿”å›nåœ¨è¡¨ä¸­çš„ä½ç½®
+		public int constantList(float n) {
+			int i;
+			i = constantTable2.indexOf(n);
+			if(i!=-1)return i;
+			else {
+				constantTable2.add(n);
+				return constantTable2.size()-1;
+			}
 		}
-	}
-		
-	//ÅĞ¶ÏÊÇ·ñÔÚ±êÊ¶·û±íÀï£¬Èô²»ÔÚÔòÌí¼Óµ½±íÎ²,²¢·µ»ØnÔÚ±íÖĞµÄÎ»ÖÃ	
-	public int identifierList(String str) {
-		int i;
-		i = identifierTable.indexOf(str);
-		if(i!=-1)return i+1;
-		else {
-			identifierTable.add(str);
-			return identifierTable.size();
-		}
-	}
 	
-	//ÅĞ¶Ï×Ö·ûcÊÇ·ñÊÇ½ç·û
+	//åˆ¤æ–­å­—ç¬¦cæ˜¯å¦æ˜¯ç•Œç¬¦
 	public boolean isDelimiter(char c) {
 		int i;
 		String ch=String.valueOf(c);
 		for (i = 1; i <= 39; i++) {
-			if (ch.equals(DELIMITERTABLE[i])) break;
+			if (ch == DELIMITERTABLE[i]) break;
 		}
 		if (i <= 39) return true;
 		else return false;
 	}
-	//ÅĞ¶Ï×Ö·û´®cÊÇ·ñÊÇ½ç·û
+	//åˆ¤æ–­å­—ç¬¦ä¸²cæ˜¯å¦æ˜¯ç•Œç¬¦
 	public int isDelimiter(String str) {
 		int i;
 		for (i = 1; i <= 39; i++) {
-			if (str.equals(DELIMITERTABLE[i]) ) break;
+			if (str == DELIMITERTABLE[i]) break;
 		}
 		if (i <= 39) return i;
 		else return 0;
 	}
 	
-	//ÅĞ¶ÏÊÇ·ñÔÚ×Ö·û³£Á¿±íÀï£¬Èô²»ÔÚÔòÌí¼Óµ½±íÎ²,²¢·µ»ØstrÔÚ±íÖĞµÄÎ»ÖÃ
+	//åˆ¤æ–­æ˜¯å¦åœ¨å­—ç¬¦å¸¸é‡è¡¨é‡Œï¼Œè‹¥ä¸åœ¨åˆ™æ·»åŠ åˆ°è¡¨å°¾,å¹¶è¿”å›stråœ¨è¡¨ä¸­çš„ä½ç½®
 	public int charList(String str) {
 		int i;
 		i = charTable.indexOf(str);
@@ -149,7 +135,7 @@ public class LexicalAnalyzer {
 		}
 	}
 	
-	//ÅĞ¶ÏÊÇ·ñÔÚ×Ö·û´®³£Á¿±íÀï£¬Èô²»ÔÚÔòÌí¼Óµ½±íÎ²,²¢·µ»ØstrÔÚ±íÖĞµÄÎ»ÖÃ
+	//åˆ¤æ–­æ˜¯å¦åœ¨å­—ç¬¦ä¸²å¸¸é‡è¡¨é‡Œï¼Œè‹¥ä¸åœ¨åˆ™æ·»åŠ åˆ°è¡¨å°¾,å¹¶è¿”å›stråœ¨è¡¨ä¸­çš„ä½ç½®
 	public int stringList(String str) {
 		int i;
 		i = stringTable.indexOf(str);
@@ -160,47 +146,43 @@ public class LexicalAnalyzer {
 		}
 	}
 		
-	//É¨Ãèº¯Êı
+	//æ‰«æå‡½æ•°
 	public Token scan() {
-		char ch;//µ±Ç°Ëù¶Á×Ö·û
+		char ch;//å½“å‰æ‰€è¯»å­—ç¬¦
 		Token token = new Token();
-		String str=new String();//±£´æ´Ë´ÎÉ¨ÃèÆ´Ğ´³öµÄµ¥´Ê
-		int p=0;
+		String str=null;//ä¿å­˜æ­¤æ¬¡æ‰«ææ‹¼å†™å‡ºçš„å•è¯
 		DFA d=new DFA();
-		//´ò¿ªÉ¨ÃèÎÄ¼ş
+		//æ‰“å¼€æ‰«ææ–‡ä»¶
 		File file=new File(this.fileName);
 		try {
-			//½«ÎÄ¼şÖ¸Õë¶¨Î»ÖÁÉÏ´ÎÉ¨ÃèÎ»ÖÃ
+			//å°†æ–‡ä»¶æŒ‡é’ˆå®šä½è‡³ä¸Šæ¬¡æ‰«æä½ç½®
 			RandomAccessFile rfile=new RandomAccessFile(file, "r");
 			rfile.seek(filePointer);
 			long l=rfile.length();
-			//³õÊ¼»¯¿ªÊ¼×´Ì¬
+			//åˆå§‹åŒ–å¼€å§‹çŠ¶æ€
 			int nowState=1;
-			ch=(char) rfile.readByte();
-			//ÂËµô¿Õ¸ñÓë»Ø³µ¡£ÈôÌø³öÊ±¶Á³öµÄÊÇ¿Õ¸ñ»ò»Ø³µ£¬Ôò¶ÁÏÂÒ»¸ö
-			while ((ch == ' ' || ch == '\n')&&rfile.getFilePointer()!=l)
+			ch=rfile.readChar();
+			//æ»¤æ‰ç©ºæ ¼ä¸å›è½¦ã€‚è‹¥è·³å‡ºæ—¶è¯»å‡ºçš„æ˜¯ç©ºæ ¼æˆ–å›è½¦ï¼Œåˆ™è¯»ä¸‹ä¸€ä¸ª
+			if (ch == ' ' || ch == '\n')
 			{
-				ch=(char) rfile.readByte();
+				ch=rfile.readChar();
 			}
-			//¶Áµ½µÄµÚÒ»¸ö×Ö·ûÎª×ÖÄ¸»òÊÇÏÂ»®Ïß£º¹Ø¼ü×Ö»òÊÇ±êÊ¶·û
+			//è¯»åˆ°çš„ç¬¬ä¸€ä¸ªå­—ç¬¦ä¸ºå­—æ¯æˆ–æ˜¯ä¸‹åˆ’çº¿ï¼šå…³é”®å­—æˆ–æ˜¯æ ‡è¯†ç¬¦
 			if(isCharacter(ch)) {
 			    DFA.kriDFA dfa=d.new kriDFA();
+				//DFA.kriDFA dfa=null;
 				while(nowState!=3&&nowState!=0&&rfile.getFilePointer()!=l+1) {
 					nowState=dfa.getState(nowState,dfa.getVn(ch));
 					str=str+ch;
-					//·ÀÖ¹ÎÄ¼şÖ¸ÕëÔ½½ç
-					if(rfile.getFilePointer()!=l) {
-						ch=(char) rfile.readByte();	
+					ch=rfile.readChar();	
 					}
-				}
-				//ÈôÌø³öÊ±²»ÔÚÖÕ½áÌ¬£¬Ôò²»½ÓÊÜ´Ëµ¥´Ê
+				//è‹¥è·³å‡ºæ—¶ä¸åœ¨ç»ˆç»“æ€ï¼Œåˆ™ä¸æ¥å—æ­¤å•è¯
 				if(nowState!=3) token=null;
-				//·ñÔò£¬½ÓÊÜ´Ëµ¥´Ê£¬ÇÒÉú³ÉÏàÓ¦token´®£¬ÌîĞ´·ûºÅ±í
+				//å¦åˆ™ï¼Œæ¥å—æ­¤å•è¯ï¼Œä¸”ç”Ÿæˆç›¸åº”tokenä¸²ï¼Œå¡«å†™ç¬¦å·è¡¨
 				else {
-					filePointer=rfile.getFilePointer()-2;//¼ÇÂ¼ÎÄ¼şÖ¸Õë
 					str=(String) str.subSequence(0, str.length()-1);
 					int j = isKey(str);
-					//ÈôstrÊÇ¹Ø¼ü×Ö
+					//è‹¥stræ˜¯å…³é”®å­—
 					if (j!=0) {
 						Token.TYPE t=Token.TYPE.k;
 						System.out.println("(k,"+j+")");
@@ -210,8 +192,9 @@ public class LexicalAnalyzer {
 						token.setSvalue(str);
 						this.tokens.add(token);
 					}
-					//·ñÔòstrÊÇ±êÊ¶·û
+					//å¦åˆ™stræ˜¯æ ‡è¯†ç¬¦
 					else {
+
 						j = identifierList(str);
 						Token.TYPE t=Token.TYPE.i;
 						System.out.println("(i,"+j+")");
@@ -220,26 +203,23 @@ public class LexicalAnalyzer {
 						token.setlastState(nowState);
 						token.setSvalue(str);
 						this.tokens.add(token);
+ 
 					}
 				}
 			}
-			//ÈôµÚÒ»¸ö×Ö·ûÎªÊı×Ö£¬Ôò¿ÉÄÜÎªÊı×Ö³£Á¿	
+			//è‹¥ç¬¬ä¸€ä¸ªå­—ç¬¦ä¸ºæ•°å­—ï¼Œåˆ™å¯èƒ½ä¸ºæ•°å­—å¸¸é‡	
 			else if(isNumber(ch)) {
 				DFA.nconDFA dfa=d.new nconDFA();
 				float num;
 				while(nowState!=4&&nowState!=6&&nowState!=0&&rfile.getFilePointer()!=l+1) {
 					nowState=dfa.getState(nowState,dfa.getVn(ch),ch);
 					str=str+ch;
-					//·ÀÖ¹ÎÄ¼şÖ¸ÕëÔ½½ç
-					if(rfile.getFilePointer()!=l) {
-						ch=(char) rfile.readByte();	
+					ch=rfile.readChar();	
 					}
-					}
-				//ÈôÌø³öÊ±²»ÔÚÖÕ½áÌ¬£¬Ôò²»½ÓÊÜ´Ëµ¥´Ê
+				//è‹¥è·³å‡ºæ—¶ä¸åœ¨ç»ˆç»“æ€ï¼Œåˆ™ä¸æ¥å—æ­¤å•è¯
 				if(nowState!=4&&nowState!=6) token=null;
-				//·ñÔò£¬½ÓÊÜ´Ëµ¥´Ê£¬ÇÒÉú³ÉÏàÓ¦token´®£¬ÌîĞ´³£Á¿±í
+				//å¦åˆ™ï¼Œæ¥å—æ­¤å•è¯ï¼Œä¸”ç”Ÿæˆç›¸åº”tokenä¸²ï¼Œå¡«å†™å¸¸é‡è¡¨
 				else {
-					filePointer=rfile.getFilePointer()-2;//¼ÇÂ¼ÎÄ¼şÖ¸Õë
 					num=dfa.getValue();
 					if(nowState==4) {
 						int j=constantList((int)num);
@@ -263,23 +243,19 @@ public class LexicalAnalyzer {
 					}
 				}
 			}
-			//Èô¶ÁÈë×Ö·ûÎª¡®£¬Ôò¿ÉÄÜÊÇ×Ö·û³£Á¿
+			//è‹¥è¯»å…¥å­—ç¬¦ä¸ºâ€˜ï¼Œåˆ™å¯èƒ½æ˜¯å­—ç¬¦å¸¸é‡
 		    else if(ch == 39) {
 		    	DFA.cconDFA dfa=d.new cconDFA();
-		    	//ÌØÊâÇé¿öÊÇÓöµ½»Ø³µ£¬Ôò½áÊøÅĞ¶Ï
+		    	//ç‰¹æ®Šæƒ…å†µæ˜¯é‡åˆ°å›è½¦ï¼Œåˆ™ç»“æŸåˆ¤æ–­
 				while(nowState!=5&&nowState!=0&&rfile.getFilePointer()!=l+1&&ch!='\n') {
 					nowState=dfa.getState(nowState,dfa.getVn(ch));
 					str=str+ch;
-					//·ÀÖ¹ÎÄ¼şÖ¸ÕëÔ½½ç
-					if(rfile.getFilePointer()!=l) {
-						ch=(char) rfile.readByte();	
-					}	
+					ch=rfile.readChar();	
 					}
-				//ÈôÌø³öÊ±²»ÔÚÖÕ½áÌ¬£¬Ôò²»½ÓÊÜ´Ëµ¥´Ê
+				//è‹¥è·³å‡ºæ—¶ä¸åœ¨ç»ˆç»“æ€ï¼Œåˆ™ä¸æ¥å—æ­¤å•è¯
 				if(nowState!=5) token=null;
-				//·ñÔò£¬½ÓÊÜ´Ëµ¥´Ê£¬ÇÒÉú³ÉÏàÓ¦token´®£¬ÌîĞ´×Ö·û³£Á¿±í
+				//å¦åˆ™ï¼Œæ¥å—æ­¤å•è¯ï¼Œä¸”ç”Ÿæˆç›¸åº”tokenä¸²ï¼Œå¡«å†™å­—ç¬¦å¸¸é‡è¡¨
 				else {
-					filePointer=rfile.getFilePointer()-2;//¼ÇÂ¼ÎÄ¼şÖ¸Õë
 					str=(String) str.subSequence(0, str.length()-1);
 					int j = charList(str);
 					Token.TYPE t=Token.TYPE.cc;
@@ -291,23 +267,19 @@ public class LexicalAnalyzer {
 					this.tokens.add(token);
 				}
 		    }
-			//Èô¶ÁÈëµÄµÚÒ»¸ö×Ö·ûÊÇ"£¬Ôò¿ÉÄÜÊÇ×Ö·û´®³£Á¿
+			//è‹¥è¯»å…¥çš„ç¬¬ä¸€ä¸ªå­—ç¬¦æ˜¯"ï¼Œåˆ™å¯èƒ½æ˜¯å­—ç¬¦ä¸²å¸¸é‡
 			else if(ch == 34) {
 				DFA.sconDFA dfa=d.new sconDFA();
-		    	//ÌØÊâÇé¿öÊÇÓöµ½»Ø³µ£¬Ôò½áÊøÅĞ¶Ï
+		    	//ç‰¹æ®Šæƒ…å†µæ˜¯é‡åˆ°å›è½¦ï¼Œåˆ™ç»“æŸåˆ¤æ–­
 				while(nowState!=2&&nowState!=0&&rfile.getFilePointer()!=l+1&&ch!='\n') {
 					nowState=dfa.getState(nowState,dfa.getVn(ch));
 					str=str+ch;
-					//·ÀÖ¹ÎÄ¼şÖ¸ÕëÔ½½ç
-					if(rfile.getFilePointer()!=l) {
-						ch=(char) rfile.readByte();	
+					ch=rfile.readChar();	
 					}
-					}
-				//ÈôÌø³öÊ±²»ÔÚÖÕ½áÌ¬£¬Ôò²»½ÓÊÜ´Ëµ¥´Ê
+				//è‹¥è·³å‡ºæ—¶ä¸åœ¨ç»ˆç»“æ€ï¼Œåˆ™ä¸æ¥å—æ­¤å•è¯
 				if(nowState!=2) token=null;
-				//·ñÔò£¬½ÓÊÜ´Ëµ¥´Ê£¬ÇÒÉú³ÉÏàÓ¦token´®£¬ÌîĞ´×Ö·û´®³£Á¿±í
+				//å¦åˆ™ï¼Œæ¥å—æ­¤å•è¯ï¼Œä¸”ç”Ÿæˆç›¸åº”tokenä¸²ï¼Œå¡«å†™å­—ç¬¦ä¸²å¸¸é‡è¡¨
 				else {
-					filePointer=rfile.getFilePointer()-2;//¼ÇÂ¼ÎÄ¼şÖ¸Õë
 					str=(String) str.subSequence(0, str.length()-1);
 					int j = stringList(str);
 					Token.TYPE t=Token.TYPE.sc;
@@ -319,18 +291,13 @@ public class LexicalAnalyzer {
 					this.tokens.add(token);
 				}
 			}
-			//Èô¶ÁÈëµÄµÚÒ»¸ö×Ö·ûÊÇ½ç·û£¬Ôò¿ÉÄÜÊÇ½ç·û
+			//è‹¥è¯»å…¥çš„ç¬¬ä¸€ä¸ªå­—ç¬¦æ˜¯ç•Œç¬¦ï¼Œåˆ™å¯èƒ½æ˜¯ç•Œç¬¦
 			else if (isDelimiter(ch)) {
-				str=str+ch;
-				//·ÀÖ¹ÎÄ¼şÖ¸ÕëÔ½½ç
-				if(rfile.getFilePointer()!=l) {
-					ch=(char) rfile.readByte();	
-				}
+				ch=rfile.readChar();
 				if(ch=='='||ch=='*'||ch=='&'||ch=='|'||ch=='<'||ch=='>'||ch=='/'||ch=='\\'||ch=='+'||ch=='-') {
 					str=str+ch;
-					//ÊÇË«Ä¿½ç·û£¬Éú³ÉÏàÓ¦token´®
+					//æ˜¯åŒç›®ç•Œç¬¦ï¼Œç”Ÿæˆç›¸åº”tokenä¸²
 					if(isDelimiter(str)!=0) {
-						filePointer=rfile.getFilePointer();//¼ÇÂ¼ÎÄ¼şÖ¸Õë
 						nowState=1;
 						int j = isDelimiter(str);
 						Token.TYPE t=Token.TYPE.p;
@@ -343,10 +310,10 @@ public class LexicalAnalyzer {
 					}
 					else token=null;
 				}
-				//ÊÇµ¥Ä¿½ç·û
+				//æ˜¯å•ç›®ç•Œç¬¦
 				else {
-					filePointer=rfile.getFilePointer()-1;//¼ÇÂ¼ÎÄ¼şÖ¸Õë
 					nowState=7;
+					str=str+ch;
 					int j = isDelimiter(str);
 					Token.TYPE t=Token.TYPE.p;
 					System.out.println("(p,"+j+")");
@@ -360,14 +327,14 @@ public class LexicalAnalyzer {
 			else if(ch=='#') {
 				token.setlastState(36);
 			}	
-			rfile.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}	
 		return token;
 	}
+
 	
-	//ÔÚÎÄ¼ş×îºóÌí¼Ó½áÊø·ûºÅ#
+	//ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó½ï¿½ï¿½ï¿½ï¿½ï¿½#
 	public void addEnd() {
 		FileWriter fw;
 		try {
@@ -380,34 +347,35 @@ public class LexicalAnalyzer {
 			e.printStackTrace();
 		}
 		
-	}
+
 	
-	//¸ù¾İ±êºÅiµÃµ½ÏàÓ¦¹Ø¼ü×Ö
+	
+	//ï¿½ï¿½İ±ï¿½ï¿½iï¿½Ãµï¿½ï¿½ï¿½Ó¦ï¿½Ø¼ï¿½ï¿½ï¿½
 	public String getKey(int i) {
 		return KEYTABLE[i];
 	}
 	
-	//¸ù¾İ±êºÅiµÃµ½ÏàÓ¦½ç·û
+	//ï¿½ï¿½İ±ï¿½ï¿½iï¿½Ãµï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½
 	public String getDelimiter(int i) {
 		return DELIMITERTABLE[i];
 	}
 	
-	//¸ù¾İ±êºÅiµÃµ½ÏàÓ¦ÕûĞÍÊı×Ö³£Á¿
+	//ï¿½ï¿½İ±ï¿½ï¿½iï¿½Ãµï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö³ï¿½ï¿½
 	public Integer getInc(int i) {
 		return constantTable1.get(i);
 	}
 	
-	//¸ù¾İ±êºÅiµÃµ½ÏàÓ¦ÊµĞÍÊı×Ö³£Á¿
+	//ï¿½ï¿½İ±ï¿½ï¿½iï¿½Ãµï¿½ï¿½ï¿½Ó¦Êµï¿½ï¿½ï¿½ï¿½ï¿½Ö³ï¿½ï¿½
 	public Float getFnc(int i) {
 		return constantTable2.get(i);
 	}
 	
-	//¸ù¾İ±êºÅiµÃµ½ÏàÓ¦×Ö·û³£Á¿
+	//ï¿½ï¿½İ±ï¿½ï¿½iï¿½Ãµï¿½ï¿½ï¿½Ó¦ï¿½Ö·ï¿½ï¿½
 	public String getChar(int i) {
 		return charTable.get(i);
 	}
 	
-	//¸ù¾İ±êºÅiµÃµ½ÏàÓ¦×Ö·û´®³£Á¿
+	//ï¿½ï¿½İ±ï¿½ï¿½iï¿½Ãµï¿½ï¿½ï¿½Ó¦ï¿½Ö·ï¿½ï¿½
 	public String getString(int i) {
 		return stringTable.get(i);
 	}
