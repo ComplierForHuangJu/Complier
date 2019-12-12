@@ -189,10 +189,21 @@ public ArrayList<Token> CharTable = new ArrayList<>();
 						token.settype(t);
 						token.setindex(j);
 						token.setlastState(nowState);
+						token.setSvalue(str);
 						this.tokens.add(token);
 					}
 					//否则str是标识符
 					else {
+
+						j = identifierList(str);
+						Token.TYPE t=Token.TYPE.i;
+						System.out.println("(i,"+j+")");
+						token.settype(t);
+						token.setindex(j);
+						token.setlastState(nowState);
+						token.setSvalue(str);
+						this.tokens.add(token);
+ 
 					}
 				}
 			}
@@ -217,6 +228,7 @@ public ArrayList<Token> CharTable = new ArrayList<>();
 						token.settype(t);
 						token.setindex(j);
 						token.setlastState(nowState);
+						token.setIvalue((int)num);
 						this.tokens.add(token);
 					}
 					else {
@@ -226,6 +238,7 @@ public ArrayList<Token> CharTable = new ArrayList<>();
 						token.settype(t);
 						token.setindex(j);
 						token.setlastState(nowState);
+						token.setFvalue(num);
 						this.tokens.add(token);
 					}
 				}
@@ -250,6 +263,7 @@ public ArrayList<Token> CharTable = new ArrayList<>();
 					token.settype(t);
 					token.setindex(j);
 					token.setlastState(nowState);
+					token.setSvalue(str);
 					this.tokens.add(token);
 				}
 		    }
@@ -273,6 +287,7 @@ public ArrayList<Token> CharTable = new ArrayList<>();
 					token.settype(t);
 					token.setindex(j);
 					token.setlastState(nowState);
+					token.setSvalue(str);
 					this.tokens.add(token);
 				}
 			}
@@ -290,6 +305,7 @@ public ArrayList<Token> CharTable = new ArrayList<>();
 						token.settype(t);
 						token.setindex(j);
 						token.setlastState(nowState);
+						token.setSvalue(str);
 						this.tokens.add(token);
 					}
 					else token=null;
@@ -304,6 +320,7 @@ public ArrayList<Token> CharTable = new ArrayList<>();
 					token.settype(t);
 					token.setindex(j);
 					token.setlastState(nowState);
+					token.setSvalue(str);
 					this.tokens.add(token);
 				}
 			}
@@ -316,6 +333,8 @@ public ArrayList<Token> CharTable = new ArrayList<>();
 		return token;
 	}
 
+	
+	//���ļ������ӽ�����#
 	public void addEnd() {
 		FileWriter fw;
 		try {
@@ -325,10 +344,40 @@ public ArrayList<Token> CharTable = new ArrayList<>();
 			pw.close ();
 			fw.close ();
 		} catch (IOException e) {
-			// TODO 鑷姩鐢熸垚鐨� catch 鍧�
 			e.printStackTrace();
 		}
 		
+
+	
+	
+	//��ݱ��i�õ���Ӧ�ؼ���
+	public String getKey(int i) {
+		return KEYTABLE[i];
+	}
+	
+	//��ݱ��i�õ���Ӧ���
+	public String getDelimiter(int i) {
+		return DELIMITERTABLE[i];
+	}
+	
+	//��ݱ��i�õ���Ӧ�������ֳ��
+	public Integer getInc(int i) {
+		return constantTable1.get(i);
+	}
+	
+	//��ݱ��i�õ���Ӧʵ�����ֳ��
+	public Float getFnc(int i) {
+		return constantTable2.get(i);
+	}
+	
+	//��ݱ��i�õ���Ӧ�ַ��
+	public String getChar(int i) {
+		return charTable.get(i);
+	}
+	
+	//��ݱ��i�õ���Ӧ�ַ��
+	public String getString(int i) {
+		return stringTable.get(i);
 	}
 	
 }
