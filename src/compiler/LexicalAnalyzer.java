@@ -411,6 +411,9 @@ public class LexicalAnalyzer {
 	public String getString(int i) {
 		return stringTable.get(i);
 	}
-	
+	public void in()
+	{
+		
+	}
 }
 
