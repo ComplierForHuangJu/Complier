@@ -358,7 +358,17 @@ public class LexicalAnalyzer {
 				}
 			}
 			else if(ch=='#') {
-				token.setlastState(36);
+				ch=(char) rfile.readByte();
+				if(ch=='#') {
+					//若遇到#，却未到达文件尾，返回null的token
+					if(rfile.getFilePointer()!=l)token=null;
+					//否则，返回结束标志
+					else {
+						str=str+ch;
+						token.setSvalue(str);
+						token.setlastState(36);
+					}
+				}	
 			}	
 			rfile.close();
 		} catch (Exception e) {
@@ -367,19 +377,37 @@ public class LexicalAnalyzer {
 		return token;
 	}
 	
-	//在文件最后添加结束符号#
+	//在文件最后添加结束符号##
 	public void addEnd() {
-		FileWriter fw;
+		File file=new File(this.fileName);
+		char ch;
 		try {
-			fw = new FileWriter(this.fileName,true);
-			PrintWriter pw=new PrintWriter(fw);
-			pw.println("#");
-			pw.close ();
-			fw.close ();
+			//将文件指针定位至文件尾-2
+			RandomAccessFile rfile=new RandomAccessFile(file, "rw");
+			long l=rfile.length();
+			rfile.seek(l-1);
+			ch=(char) rfile.readByte();
+			//若文件尾最后一个是#，则判断倒数第二个是否是#
+			if(ch=='#') {
+				rfile.seek(l-2);
+				ch=(char) rfile.readByte();
+				//若文件倒数第二个也是#,则返回
+				if(ch=='#')return;
+				//否则，在文件尾加一个#
+				else {
+					rfile.seek(l);
+					rfile.writeByte((int)'#');
+				}
+			}
+			//否则加两个#
+			else {
+				rfile.writeByte((int)'#');
+				rfile.writeByte((int)'#');
+			}
+			rfile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
 	//根据标号i得到相应关键字
@@ -393,7 +421,7 @@ public class LexicalAnalyzer {
 	}
 	
 	//根据标号i得到相应整型数字常量
-	public Integer getInc(int i) {
+	public Integer getInc(int i) {	
 		return constantTable1.get(i);
 	}
 	
@@ -410,10 +438,6 @@ public class LexicalAnalyzer {
 	//根据标号i得到相应字符串常量
 	public String getString(int i) {
 		return stringTable.get(i);
-	}
-	public void in()
-	{
-		
 	}
 }
 

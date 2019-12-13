@@ -1,17 +1,16 @@
-
 package compiler;
 
 import java.util.HashMap;
 public class DFA {
 
-	//鍏抽敭瀛楁垨鏍囪瘑绗︾殑鑷姩鏈�
+	//关键字或标识符的自动机
 	public class kriDFA{
-		private int map[][]= {{0,0,0,0},{0,1,0,0},{0,2,2,3},{0,0,0,0}};
+		private int map[][]= {{0,0,0,0},{0,2,0,0},{0,2,2,3},{0,0,0,0}};
 		
 	    public int getVn(char c) {
-	    	if ((c >= 65 && c <= 106) || (c >= 97 && c <= 122) || (c == 95))return 1;//瀛楁瘝鎴栦笅鍒掔嚎
-	    	else if ((c >= 48 && c <= 57))return 2;//鏁板瓧
-	    	else  return 3;//鍚庣户绗�
+	    	if ((c >= 65 && c <= 106) || (c >= 97 && c <= 122) || (c == 95))return 1;//字母或下划线
+	    	else if ((c >= 48 && c <= 57))return 2;//数字
+	    	else  return 3;//后继符
 	    }
 		
 		public int getState(int i,int j) {
@@ -22,12 +21,12 @@ public class DFA {
 	
 	public class nconDFA{
 		/*
-		 * map[][]---鍙樻崲琛�
-		 * n---灏炬暟鍊煎彉閲�
-		 * p---鎸囨暟鍊煎彉閲�
-		 * m---灏忔暟浣嶆暟鍙橀噺
-		 * e---鎸囨暟鐨勭鍙峰彉閲�
-		 * value---鏈�缁堝父鏁板��
+		 * map[][]---变换表
+		 * n---尾数值变量
+		 * p---指数值变量
+		 * m---小数位数变量
+		 * e---指数的符号变量
+		 * value---最终常数值
 		 */
 		private int map[][]= {{0,0,0,0,0,0},{0,2,0,0,0,0},{0,2,3,7,4,4},{0,5,0,0,0,0},
 				{0,0,0,0,0,0},{0,5,6,7,6,6},{0,0,0,0,0,0},{0,8,0,0,9,0},{0,8,6,6,6,6},{0,8,0,0,0,0}};
@@ -38,20 +37,21 @@ public class DFA {
 		private float value;
 		
 	    public int getVn(char c) {
-	    	if ((c >= 48 && c <= 57))return 1;//鏁板瓧
+	    	if ((c >= 48 && c <= 57))return 1;//数字
 	    	else if(c=='.')return 2;
 	    	else if(c=='e'||c=='E')return 3;
 	    	else if (c=='+'||c=='-')return 4;
-	    	else  return 5;//鍚庣户绗�
+	    	else  return 5;//后继符
 	    }
 	    
-	    //甯告暟鐨勭炕璇戝櫒
+	    //常数的翻译器
 	    public void tran(int i,char c) {
 	    	if(i==2) {
 	    		n=10*n+(c-48);
 	    	}
 	    	else if(i==5) {
 	    		n=10*n+(c-48);
+	    		m=m+1;
 	    	}
 	    	else if(i==8) {
 	    		p=10*p+(c-48);
@@ -63,13 +63,13 @@ public class DFA {
 	    	}
 	    }
 		
-	    //鐘舵�佽浆鎹紝i鏄綋鍓嶇姸鎬侊紝j鏄鍏ュ瓧绗︾紪鐮侊紝c鏄綋鍓嶆墍璇诲瓧绗�
+	    //状态转换，i是当前状态，j是读入字符编码，c是当前所读字符
 		public int getState(int i,int j,char c) {
 			tran(map[i][j],c);
 			return map[i][j];
 		}  
 		
-		//绠楀嚭鏈�鍚庣殑甯告暟鍊�
+		//算出最后的常数值
 		public float getValue() {
 			int i,j;
 			j=this.e*this.p-this.m;
@@ -80,14 +80,14 @@ public class DFA {
 		
 	}
 	
-	//璇嗗埆瀛楃甯搁噺
+	//识别字符常量
 	public class cconDFA{
 		private int map[][]= {{0,0,0,0},{0,2,0,0},{0,4,3,6},{0,4,0,0},
 				{0,5,5,5},{0,0,0,0},{0,8,7,7},{0,4,0,0},{0,4,0,0}};
 		
 	    public int getVn(char c) {
 	    	if (c==39 )return 1;//'
-	    	else if(c=='\\')return 3;//鈥榎鈥�
+	    	else if(c=='\\')return 3;//‘\’
 	    	else return 2;
 	    }
 		
@@ -95,7 +95,7 @@ public class DFA {
 			return map[i][j];
 		}  
 	}
-	//璇嗗埆瀛楃涓插父閲�
+	//识别字符串常量
 	public class sconDFA{
 		private int map[][]= {{0,0,0,0},{0,4,0,0},{0,0,0,0},{0,2,2,2},
 				{0,3,5,4},{0,4,4,4}};
@@ -111,4 +111,3 @@ public class DFA {
 		}  
 	}
 }
-

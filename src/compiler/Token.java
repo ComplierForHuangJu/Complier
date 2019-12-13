@@ -27,6 +27,7 @@ public class Token {
 	private TYPE type;
 	private int index;
 	private int lastState;
+
 	private String svalue;
 	private int ivalue;
 	private float fvalue;
@@ -45,6 +46,9 @@ public class Token {
 	}
 	public void setlastState(int state) {
 		this.lastState = state;
+	}
+	public int getLastState() {
+		return lastState;
 	}
 	public String getSvalue() {
 		return svalue;

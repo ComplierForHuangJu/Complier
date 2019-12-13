@@ -5,7 +5,7 @@ package compiler;
  * 
  * */
 public class Quat {
-	public Token opc;
+	public String opc;
 	public Token ope1;
 	public Token ope2;
 	public Token res;
@@ -13,7 +13,7 @@ public class Quat {
 	
 	
 	
-	public Quat(Token opc, Token ope1, Token ope2, Token res) {
+	public Quat(String opc, Token ope1, Token ope2, Token res) {
 		super();
 		this.opc = opc;
 		this.ope1 = ope1;
