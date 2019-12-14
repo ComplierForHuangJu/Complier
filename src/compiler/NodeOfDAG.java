@@ -9,6 +9,7 @@ package compiler;
  */
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class NodeOfDAG {
 	
@@ -16,7 +17,7 @@ public class NodeOfDAG {
 	int _ni;
 	
 	/* 运算符Token */
-	Token _opc;
+	String _opc;
 	
 	/* 主标记 */
 	Token _mainPip;
@@ -30,8 +31,23 @@ public class NodeOfDAG {
 	/* 后继  */
 	ArrayList<Integer> _seq;
 	
+	
+	NodeOfDAG()
+	{
+		
+	}
+	
 	NodeOfDAG(int i){this._ni = i;}
 
+	
+	NodeOfDAG(int i,int pre)
+	{
+		this._ni = i;
+		//向该节点前驱加入父亲
+		this._pre.add(pre);
+	}
+	
+	
 	public int get_ni() {
 		return _ni;
 	}
@@ -40,12 +56,12 @@ public class NodeOfDAG {
 		this._ni = _ni;
 	}
 
-	public Token get_opc() {
+	public String get_opc() {
 		return _opc;
 	}
 
-	public void set_opc(Token _opc) {
-		this._opc = _opc;
+	public void set_opc(String opc) {
+		this._opc = opc;
 	}
 
 	public Token get_mainPip() {
@@ -80,5 +96,16 @@ public class NodeOfDAG {
 		this._seq = _seq;
 	}
 	
+	public void add_addTag(Token token) {
+		this._addTag.add(token);
+	}
+	
+	public void add_seq(int i) {
+		this._seq.add(i);
+	}
+	public void add_pre(int i) {
+		this._pre.add(i);
+	}
+
 	
 }
