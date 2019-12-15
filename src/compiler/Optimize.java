@@ -62,7 +62,6 @@ public class Optimize {
 					NodeOfDAG leftChild = contains(DAG,quat.ope1) ? DAG.get(getNode(DAG, quat.ope1)) : new NodeOfDAG(_index++);
 					NodeOfDAG rightChild = contains(DAG,quat.ope2) ? DAG.get(getNode(DAG, quat.ope2)) : new NodeOfDAG(_index++);
 					
-					
 					//如果主标记为空，就添加到主标记上，否则添加到附加标记上
 					if(leftChild.get_mainPip() == null)
 						leftChild.set_mainPip(quat.ope1);
