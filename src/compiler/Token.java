@@ -32,6 +32,18 @@ public class Token {
 	private int ivalue;
 	private float fvalue;
 	
+	/********新添加的关于活跃信息生成部分的成员变量********/
+	
+	private char isActive;
+	
+	public char getIsActive() {
+		return isActive;
+	}
+	public void setIsActive(char isActive) {
+		this.isActive = isActive;
+	}
+	/*********************************************/
+	
 	public TYPE gettype() {
 		return type;
 	}
