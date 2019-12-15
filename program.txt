@@ -1,1 +1,4 @@
-A+b##
+int A(){
+int a=1;
+function;
+}##

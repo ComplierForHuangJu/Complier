@@ -8,6 +8,16 @@ public class compiler {
 		lex.scan();
 		lex.scan();
 		lex.scan();
+		lex.scan();
+		lex.scan();
+		lex.scan();
+		lex.scan();	
+		lex.scan();
+		lex.scan();
+		lex.scan();
+		lex.scan();
+		lex.scan();
+		lex.scan();
 		t=lex.scan();
 		System.out.print("1");
 

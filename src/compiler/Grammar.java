@@ -9,9 +9,9 @@ import java.io.BufferedReader;
 
 
 public class Grammar {
-	public String left;
-	public ArrayList<String> right = new ArrayList<String>();
-	public int id;//产生式编号
+	private String left;
+	private ArrayList<String> right = new ArrayList<String>();
+	private int id;//产生式编号
 	static public String Start;//产生式开始符号
 	static public ArrayList<Grammar> W = new ArrayList<Grammar>();//存储所有产生式的容器
 	static public HashSet<String> VnSet = new HashSet<String>();//存储所有非终结符
@@ -19,12 +19,11 @@ public class Grammar {
     static public HashMap<String,HashSet<String>> firstSet = new  HashMap<String, HashSet<String>>();//非终结符的首付号集合
 	static public HashMap<String,HashSet<String>> followSet = new HashMap<String, HashSet<String>>();//非终结符的follow集合
 	//static public HashMap<String, ArrayList<ArrayList<String>>> expSet = new HashMap<String, ArrayList<ArrayList<String>>>();//存所有表达式
-    static public int[][] Table;//= new int[100][100];//分析表
+    static public int[][] Table;//分析表
     static public Object[] VdArray;//终结符hashset转换成了数组
     static public Object[] VnArray; //非终结符hashset转换成了数组
     static public String[] VdA;
     static public String[] VnA;
-    
     public Grammar() {}
 	public Grammar(int c) {//构造函数
 		id=c;
@@ -40,7 +39,7 @@ public class Grammar {
 			System.out.print(right.get(i));
 			System.out.print(" ");
 		}
-		System.out.print(id);
+		//System.out.print(id);
 		System.out.print("\n");
 		
 	}
@@ -61,7 +60,7 @@ public class Grammar {
 	{
 		left=a;
 	}
-	public String getL(int i)//返回产生式左部
+	public String getL()//返回产生式左部
 	{
 		return left;
 	}
@@ -89,7 +88,14 @@ public class Grammar {
 		else
 			return false;
 	}
-	
+	 public boolean isRightNull()//判断一个产生式右部是否为空
+	{
+		if(right.size()==1 && right.get(0).equals("$")) {
+			return true;
+		}
+		else
+			return false;
+	}
     public int getIndex(String a)//返回a在右部中的位置
     {
     	int index=-1;
@@ -98,6 +104,7 @@ public class Grammar {
     		if(a.equals(right.get(i)))
     			index=i;
     			
+    		//else System.out.print(right.get(i));
     	}
     	return index;
     }
@@ -142,7 +149,7 @@ public class Grammar {
 	   return index;
   }
 	
-	 public static void initGrammar()//初始化文法，生成所有终结符和非终结符
+public static void initGrammar()//初始化文法，生成所有终结符和非终结符
 	{
 		 
 		 BufferedReader bufferedReader = null;
@@ -151,7 +158,7 @@ public class Grammar {
 			String string;
 			String lefts;
 			int idd=0;
-			while((string=bufferedReader.readLine())!=null)
+			while((string=bufferedReader.readLine())!=null)//从文件中读取文法
 	    	{
 				
 				//System.out.print(string);
@@ -206,6 +213,7 @@ public static void getFirstSet(String target)//生成首符号集合
 		//HashSet<String> H = new HashSet<String>();//临时记录每一个非终结符的首符号集合
 	    for(int i=0;i<W.size();i++)
 	    {
+	    	//System.out.print(W.get(i).left);
 	    	if(W.get(i).left.equals(target))
 	    	{
 	    		if(VdSet.contains(W.get(i).right.get(0))) //表达式右部第一个字母是终结符
@@ -223,6 +231,7 @@ public static void getFirstSet(String target)//生成首符号集合
 	    					}
 	    					break;
 	    				}
+	    				if(!W.get(i).left.equals(W.get(i).right.get(j))) {
 	    				getFirstSet(W.get(i).right.get(j));
 	    				HashSet<String> Set = firstSet.get(W.get(i).right.get(j));
 	    				
@@ -242,6 +251,7 @@ public static void getFirstSet(String target)//生成首符号集合
 	    						}
 	    						
 	    					}
+	    				}
 	    				if(isEmpty == 0)
 	    					break;
 	    				else
@@ -264,18 +274,20 @@ public static void getFirstSet(String target)//生成首符号集合
 	}
 public static void getFollowSet(String target)//求非终结符target的follow集合
 {
-	int isEmpty = 0;
+	//int isEmpty = 0;
 	HashSet<String> set = (followSet.containsKey(target))? followSet.get(target) : new HashSet<String>();
 		if(Start.equals(target)) 
 			set.add("#");  			//结束符号加入follow(S)		
 		 for (int i=0;i<W.size();i++)
 		 {  //遍历所有产生式
+			 int isEmpty = 0;
 			 if(W.get(i).Contain(target))//第i个产生式右部含有待求非终结符
 			 {
 				 int index = W.get(i).getIndex(target);//该非终结符在右部中的位置
 				 
 				 if(index == W.get(i).right.size()-1 && (!target.equals(W.get(i).left)))//当前符号是右部最后一个符号A->....T
 				 {
+					 //System.out.println(target+"递归进入"+W.get(i).left);
 					 getFollowSet(W.get(i).left);//递归求出其左部的follow集合加入当前待求follow集合中
 					 HashSet<String> set1 = followSet.get(W.get(i).left);
 					 for(String a: set1)
@@ -304,12 +316,16 @@ public static void getFollowSet(String target)//求非终结符target的follow集合
 					 {
 					    String nex = W.get(i).right.get(++id);
 					    //System.out.print(nex);
-					    if(!(firstSet.get(nex).contains("$")))//后边一个非终结符的first集合不可空
+					    if(VdSet.contains(nex)) {
+					    	set.add(nex);
+					    	break;
+					    }
+					 else if(!(firstSet.get(nex).contains("$")))//后边一个非终结符的first集合不可空
 					    {
 						    set.addAll(firstSet.get(nex));//把后一个非终结符的first集合全部加入
 						    break;//跳出循环
 					    }
-					    else//后一个符号可空
+					    else if(firstSet.get(nex).contains("$"))//后一个符号可空
 					    {
 					    for(String a : firstSet.get(nex))
 					    {
@@ -324,11 +340,14 @@ public static void getFollowSet(String target)//求非终结符target的follow集合
 					 }
 					 if(isEmpty==lenth)//后边符号全可以是空
 					 {
+						 if(!W.get(i).left.equals(target)) {
+							 //System.out.println(target+"递归进入"+W.get(i).left);
 						 getFollowSet(W.get(i).left);
 						 HashSet<String> set2 = followSet.get(W.get(i).left);
 						 for(String a : set2)
 						 {
 							 set.add(a);
+						 }
 						 }
 					 }
 						 
@@ -339,28 +358,35 @@ public static void getFollowSet(String target)//求非终结符target的follow集合
 		 
 	}
 		 followSet.put(target, set);
+		// System.out.print(target);
+		 /*for(String a : followSet.get(target)) {
+			 System.out.print(a);
+		 }
+		 System.out.print("\n");*/
 }
- 
 
 
 static public void  getTable()//生成分析表
 {
-	VdSet.add("#");
+	//VdSet.add("#");
 	VdArray = VdSet.toArray();
 	VnArray = VnSet.toArray();
-	/*for(int i=0;i<VdArray.length;i++)
+	VdA = new String[VdArray.length+1];//多加入一个#
+	VnA = new String[VnArray.length];
+	for(int i=0;i<VdArray.length;i++)
 	{
 		VdA[i]=VdArray[i].toString();
 	}
 	for(int i=0;i<VnArray.length;i++)
 	{
 		VnA[i]=VnArray[i].toString();
-	}*/
+	}
+	VdA[VdArray.length] = "#";//在终结符中加入#，即在符号表里加入一列是#
     int l = VdArray.length;
     Table = new int[VnArray.length][VdArray.length+1];
     for(int i=0;i<W.size();i++)
     {
-    	int row = getVnIndex(W.get(i).left);
+    	int row = getVnAIndex(W.get(i).left);
     	int emptyCount = 0;
     	for(int j=0; j< W.get(i).right.size();j++)
     	{
@@ -368,7 +394,7 @@ static public void  getTable()//生成分析表
     		if(VdSet.contains(temp))
     		{
     			if(!temp.equals("$"))
-    				Table[row][getVdIndex(temp)] = i+1;
+    				Table[row][getVdAIndex(temp)] = i+1;
     			if(temp.equals("$"))
     				emptyCount++;
     			break;
@@ -380,7 +406,7 @@ static public void  getTable()//生成分析表
     			{
     				 Object[] firstArray = firstSet.get(temp).toArray();
     				
-    				Table[row][getVdIndex(firstArray[k].toString())] = i+1;
+    				Table[row][getVdAIndex(firstArray[k].toString())] = i+1;
     			}
     			if(firstSet.get(temp).contains("$"))
     				emptyCount++;
@@ -394,7 +420,7 @@ static public void  getTable()//生成分析表
     		for(int k=0;k<followSet.get(W.get(i).left).size();k++)
     		{
     			Object[] followArray = followSet.get(W.get(i).left).toArray();
-    			Table[row][getVdIndex(followArray[k].toString())] = i+1;
+    			Table[row][getVdAIndex(followArray[k].toString())] = i+1;
     		}
     	}
     

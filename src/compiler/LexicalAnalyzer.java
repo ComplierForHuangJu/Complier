@@ -22,7 +22,7 @@ public class LexicalAnalyzer {
 	 * fileName---所要分析的源程序的文件名
 	 * filePointer---所读文件的指针
 	 *  */
-	private static String[] KEYTABLE = new String[34];
+	private static String[] KEYTABLE = new String[35];
 	private static String[] DELIMITERTABLE = new String[40];
 	private ArrayList<String> identifierTable = new ArrayList<>();
 	//private ArrayList<Token> symbolTable = new ArrayList<>(); 
@@ -41,7 +41,7 @@ public class LexicalAnalyzer {
 		int i=1;
 		try {
 			BufferedReader reader =new BufferedReader(new FileReader(file));
-			for(i=1;i<34;i++) {
+			for(i=1;i<35;i++) {
 				String str = reader.readLine();
 				KEYTABLE[i]=str;
 			}
@@ -72,7 +72,7 @@ public class LexicalAnalyzer {
 	//判断是否是关键字，并返回表中位置
 	public int isKey(String str) {
 		int i;
-		for (i = 1; i <= 33; i++) {
+		for (i = 1; i <= 34; i++) {
 			if (str.equals(KEYTABLE[i])) break;
 		}
 		if (i <= 33) return i;
@@ -177,8 +177,8 @@ public class LexicalAnalyzer {
 			//初始化开始状态
 			int nowState=1;
 			ch=(char) rfile.readByte();
-			//滤掉空格与回车。若跳出时读出的是空格或回车，则读下一个
-			while ((ch == ' ' || ch == '\n')&&rfile.getFilePointer()!=l)
+			//滤掉空格与回车。若跳出时读出的是空格或回车(回车由两部分组成，一个ASCII码值为13，另一个为ASCII码值为10)，则读下一个
+			while ((ch == ' ' || ch == 13|| ch == 10)&&rfile.getFilePointer()!=l)
 			{
 				ch=(char) rfile.readByte();
 			}
