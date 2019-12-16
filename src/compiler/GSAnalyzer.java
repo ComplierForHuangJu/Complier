@@ -1,7 +1,7 @@
 package compiler;
 
-import java.util.ArrayList;
-import java.util.Stack;
+import java.util.*;
+
 
 
 public class GSAnalyzer {
@@ -10,9 +10,8 @@ public class GSAnalyzer {
 	 * lex---词法分析器
 	 * SynStack---语法栈
 	 * SemStack---语义栈
-	 * symList---符号表
-	 * typeList---类型表
-	 * funcList---函数表
+	 * allSymList---符号表集合
+	 * currentSym---当前符号表
 	 * addr---相对偏移量
 	 */
 	public ArrayList<Quat> QuatList= new ArrayList<Quat>();
@@ -20,10 +19,11 @@ public class GSAnalyzer {
 	private  Stack<String> SynStack = new Stack<String>();
 	private  Stack<Token> SemStack = new Stack<Token>();
 	
-	public ArrayList<SymbolTable> symList;
-	public ArrayList<TypeTable> typeList;
-	public ArrayList<FuncTable> funcList;
+	public Map<String,SymbolTable> allSymList;
+	//public ArrayList<TypeTable> typeList; 类型表存在是为了知道一个自定义类型的长度，如果没有结构体，那么只需要知道数组的长度，而数组的信息也会在所处函数的SymbolTable当中存储，因此不需要此表
+	//public ArrayList<FuncTable> funcList;
 	
+	public SymbolTable currentSym;
 	private int addr = 0;
 
 	
@@ -202,6 +202,7 @@ public class GSAnalyzer {
 			break;
 		}
 		}
+		symList.add(s);
 	}
 	
 	//将标识符压语义栈
