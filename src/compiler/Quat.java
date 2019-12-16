@@ -9,6 +9,7 @@ public class Quat {
 	public Token ope1;
 	public Token ope2;
 	public Token res;
+	static public int Snum;//四元式数量，用于定义当前四元式结果编号
 	
 	
 	
