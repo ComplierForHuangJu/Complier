@@ -269,7 +269,7 @@ public class LexicalAnalyzer {
 		    	//特殊情况是遇到回车，则结束判断
 				while(nowState!=5&&nowState!=0&&rfile.getFilePointer()!=l+1&&ch!='\n') {
 					nowState=dfa.getState(nowState,dfa.getVn(ch));
-					str=str+ch;
+					if(nowState==3||nowState==7||nowState==8)str=str+ch;
 					//防止文件指针越界
 					if(rfile.getFilePointer()!=l) {
 						ch=(char) rfile.readByte();	
@@ -280,7 +280,7 @@ public class LexicalAnalyzer {
 				//否则，接受此单词，且生成相应token串，填写字符常量表
 				else {
 					filePointer=rfile.getFilePointer()-2;//记录文件指针
-					str=(String) str.subSequence(0, str.length()-1);
+					//str=(String) str.subSequence(0, str.length()-1);
 					int j = charList(str);
 					Token.TYPE t=Token.TYPE.cc;
 					System.out.println("(cc,"+j+")");

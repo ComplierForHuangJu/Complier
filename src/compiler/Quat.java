@@ -12,7 +12,12 @@ public class Quat {
 	
 	
 	
-	
+
+	//¹¹Ôìº¯Êý
+	public Quat() {
+		
+	}
+
 	public Quat(String opc, Token ope1, Token ope2, Token res) {
 		super();
 		this.opc = opc;

@@ -13,18 +13,19 @@ public class GSAnalyzer {
 	 * allSymList---符号表集合
 	 * currentSym---当前符号表
 	 * addr---相对偏移量
+	 * isSemTrue---语义是否正确，弱不正确则停止分析
 	 */
 	public ArrayList<Quat> QuatList= new ArrayList<Quat>();
 	private LexicalAnalyzer lex;
 	private  Stack<String> SynStack = new Stack<String>();
 	private  Stack<Token> SemStack = new Stack<Token>();
 	
-	public Map<String,SymbolTable> allSymList;
-	//public ArrayList<TypeTable> typeList; 类型表存在是为了知道一个自定义类型的长度，如果没有结构体，那么只需要知道数组的长度，而数组的信息也会在所处函数的SymbolTable当中存储，因此不需要此表
-	//public ArrayList<FuncTable> funcList;
+	public Map<String,SymbolTable> allSymList = new HashMap<String, SymbolTable>();
 	
 	public SymbolTable currentSym;
 	private int addr = 0;
+	
+	private boolean isSemTrue = true;
 
 	
 	//判断一个字符串是不是全是数字组成
@@ -45,10 +46,6 @@ public class GSAnalyzer {
 		//初始化词法分析器
 		LexicalAnalyzer l=new LexicalAnalyzer(name);
 		lex=l;
-		//初始化类型表
-		typeList.add(new TypeTable(1,(Integer) null));
-		typeList.add(new TypeTable(2,(Integer) null));
-		typeList.add(new TypeTable(3,(Integer) null));
 	}
 	
 	//初始化语法分析栈
@@ -108,6 +105,7 @@ public class GSAnalyzer {
 				int n = Integer.parseInt(s1);
 				Token tem;
 				semTran(n,it);
+				if(!isSemTrue)break;
 				System.out.println("操作："+s1);
 			}
 			else if(s1.equals(s2) && s1.equals("#")) {
@@ -117,8 +115,10 @@ public class GSAnalyzer {
 			}
 			//匹配栈顶符号成功
 			else if(s1.equals(s2)) {
-				//若上一个读取的token是标识符/关键字，则记录以便压栈
-				if(T.gettype().name().equals("i")||T.gettype().name().equals("k"))it=T;
+				//若上一个读取的token是标识符/关键字/大于小于等，则记录以便压栈
+				//if(T.gettype().name().equals("i")||T.gettype().name().equals("k")||s2.equals(">")||s2.equals("<")||s2.equals(">=")||
+					//	s2.equals("<=")||s2.equals("==")||s2.equals("!="))
+					it=T;
 				T = lex.scan();//读下一个待匹配字符的Token
 				System.out.println("匹配："+s1);
 			}
@@ -138,71 +138,119 @@ public class GSAnalyzer {
 				return;
 			}
 		  }
+		if(!isSemTrue)break;
 		}
 	}
 
 	//根据不同语义动作s，执行相应语义动作函数
 	public void semTran(int s,Token t) {
 		switch(s) {
-		case 0 : proBegin();break;
-		case 1 :proEnd();break;
-		case 2 :varDefinition();break;
-		case 3 :push(t);break;
-		case 4 :push(t);break;
+		case 0 : 
+			isType(t);
+			if(isSemTrue)push(t);
+			break;
+		case 1 :
+			push(t);
+			break;
+		case 2 :
+			varDefinition1();
+			break;
+		case 3 :
+			varDefinition2();
+			break;
+		case 4 :
+			ifBegin();
+			break;
+		case 5 :
+			ifEnd();
+			break;
+		case 6 :
+			elseBegin();
+			break;
+		case 7 :
+			whileBegin();
+			break;
+		case 8 :
+			dowhile();
+			break;
+		case 9 :
+			whileEnd();
+			break;
+		case 10 :
+			forJudge();
+			break;
+		case 11 :
+			dofor();
+			break;
+		case 12 :
+			forEnd();
+			break;
+		case 13 :
+			popSem();
+			break;
+		case 14 :
+			juge1(t);
+			break;
+		case 15 :
+			jugeResult();
+			break;
 		}
 		
 	}
-
-	//程序开始
-	public void proBegin() {
-		Token t=new Token();
-		t.setSvalue("_");
-		Quat q=new Quat("ProBegin",t,t,t);
-	}
-	//程序结束
-	public void proEnd() {
-		Token t=new Token();
-		t.setSvalue("_");
-		Quat q=new Quat("ProEnd",t,t,t);
+	
+	//判断是否是已定义的类型(int,float,char)
+	public void isType(Token t) {
+		  if(!(t.getSvalue().equals("int")||t.getSvalue().equals("float")||t.getSvalue().equals("char"))) {
+			  isSemTrue=false;
+			  System.out.println("类型为定义！");
+		  }  
 	}
 	//定义且不赋值语句
-	public void varDefinition() {
-		//将变量填入符号表(名字、种类、类型、相对地址)
+	public void varDefinition1() {
+		String name ;
+		int type = 0;
+		//将变量名从语义栈中弹出,并填标识符表
 		Token to = this.SemStack.pop();
-		SymbolTable s = new SymbolTable();
-		//填入名字
-		s.name=to.getSvalue();
-		//填入种类，并填类型表指针
-		to = this.SemStack.pop();
-		switch(to.getSvalue()) {
-		case "int": s.type=1;break;
-		case "float" : s.type = 2;break;
-		case "char" : s.type = 3;break;
-		default: s.type = 0;break;
+		name = to.getSvalue();
+		//判断此变量是否重复定义
+		if(!currentSym.IDsymbol.containsKey(name)){
+			currentSym.IDsymbol.put(name,new Symbol(name));
+			//将变量类型从语义栈中弹出，并填标识符表中此标识符的类型
+			to =  this.SemStack.pop();
+			switch(to.getSvalue()) {
+			case "int" :
+				type = 0;
+				break;
+			case "float" :
+				type = 1;
+				break;
+			case "char" :
+				type = 2;
+				break;
+			}
+			currentSym.IDsymbol.get(name).type = type;
+			//填入种类（变量）
+			currentSym.IDsymbol.get(name).cate = 4;
+			//填入相对偏移量	
+			switch(to.getSvalue()) {
+			case "int": 
+				currentSym.IDsymbol.get(name).addr = this.addr;
+				addr = addr+4;
+				break;
+			case "float" :
+				currentSym.IDsymbol.get(name).addr = this.addr;
+				addr = addr+4;
+				break;
+			case "char" : 
+				currentSym.IDsymbol.get(name).addr = this.addr;
+				addr = addr+1;
+				break;
+			}
 		}
-		//填入种类（变量）
-		s.cate=4;
-		//填入相对偏移量
-		
-		switch(to.getSvalue()) {
-		case "int": 
-		{
-			s.addr=this.addr;
-			addr = addr+4;
-			break;
+		else {
+			isSemTrue = false;
+			System.out.println("变量"+name+"重复定义！");
 		}
-		case "float" : {
-			s.addr=this.addr;
-			addr = addr+4;
-			break;
-		}
-		case "char" : {
-			s.addr=this.addr;
-			addr = addr+1;
-			break;
-		}
-		}
-		symList.add(s);
 	}
 	
 	//将标识符压语义栈
@@ -210,6 +258,148 @@ public class GSAnalyzer {
 		this.SemStack.push(t);
 	}
 	//定义且赋值语句
-	
+	public void varDefinition2() {
+		Token t1;//记录栈顶
+		Token t2;//记录次栈顶
+		//将栈顶表达式的token弹出
+		t1 = SemStack.pop();
+		//记录次栈顶标识符的token
+		t2 = SemStack.peek();
+		//将定义的标识符的相关信息填符号表
+		varDefinition1();
+		//生成赋值四元式
+		if(isSemTrue) {
+			Token t = new Token();
+			t.setSvalue("_");
+			currentSym.quaters.add(new Quat("=",t1,t,t2));
+		}
+	}
+	//生成if开始四元式
+	public void ifBegin() {
+		Token t;
+		//将判断结果从语义栈顶弹出
+		t = SemStack.pop();
+		Token te = new Token();
+		te.setSvalue("_");
+		currentSym.quaters.add(new Quat("if",t,te,te));
+	}
+	//生成if结束四元式
+	public void ifEnd() {
+		Token te = new Token();
+		te.setSvalue("_");
+		currentSym.quaters.add(new Quat("ie",te,te,te));
+	}
+	//生成else开始四元式
+	public void elseBegin() {
+		Token te = new Token();
+		te.setSvalue("_");
+		currentSym.quaters.add(new Quat("el",te,te,te));
+	}
+	//生成while开始四元式
+	public void whileBegin() {
+		Token te = new Token();
+		te.setSvalue("_");
+		currentSym.quaters.add(new Quat("wh",te,te,te));
+	}
+	//生成if开始四元式
+	public void dowhile() {
+		Token t;
+		//将判断结果从语义栈顶弹出
+		t = SemStack.pop();
+		Token te = new Token();
+		te.setSvalue("_");
+		currentSym.quaters.add(new Quat("do",t,te,te));
+	}
+	//生成while结束四元式
+	public void whileEnd() {
+		Token te = new Token();
+		te.setSvalue("_");
+		currentSym.quaters.add(new Quat("we",te,te,te));
+	}
+	//生成for循环开始四元式
+	public void forJudge() {
+		Token t;
+		//将判断结果从语义栈顶弹出
+		t = SemStack.pop();
+		Token te = new Token();
+		te.setSvalue("_");
+		currentSym.quaters.add(new Quat("forF",t,te,te));
+		currentSym.quaters.add(new Quat("forT",te,te,te));
+	}
+	//生成for开始执行四元式
+	public void dofor() {
+		Token te = new Token();
+		te.setSvalue("_");
+		currentSym.quaters.add(new Quat("T",te,te,te));
+	}
+	//生成for结束四元式
+	public void forEnd() {
+		Token te = new Token();
+		te.setSvalue("_");
+		currentSym.quaters.add(new Quat("fe",te,te,te));
+	}
+	//将语义栈栈顶元素出栈
+	public void popSem() {
+		SemStack.pop();
+	}
+	//
+	public void juge1(Token t) {
+		if(currentSym.IDsymbol.get(t.getSvalue()).isInit) {
+			push(t);
+		}
+		else {
+			isSemTrue = false;
+			System.out.println("变量"+t.getSvalue()+"在使用时未初始化！");
+		}
+	}
+	//判断juge结果，生成四元式，并将结果压栈
+	public void jugeResult() {
+		Token t1 = SemStack.pop();
+		Token t2 = SemStack.pop();
+		Token t3 = SemStack.pop();
+		
+		//若t1,t3是char类型，则将其值转化为float型
+		float v1,v2;
+		if(t1.gettype()==Token.TYPE.cc) v1 = (float)Integer.parseInt(t1.getSvalue());
+		else if(t1.gettype()==Token.TYPE.inc) v1 = t1.getIvalue();
+		else v1 = t1.getFvalue();
+		if(t2.gettype()==Token.TYPE.cc) v2 = (float)Integer.parseInt(t2.getSvalue());
+		else if(t2.gettype()==Token.TYPE.inc) v2 = t2.getIvalue();
+		else v2 = t2.getFvalue();
+		
+		Token t = new Token();//临时变量t需要加入标识符表吗，若加入，怎样区分临时变量与非临时变量
+		switch(t2.getSvalue()) {
+		case ">" :
+			if(v2>v1) t.setIvalue(1);
+			else t.setIvalue(0);
+			currentSym.quaters.add(new Quat(">",t3,t1,t));
+			SemStack.add(t);
+		case "<" :
+			if(v2<v1) t.setIvalue(1);
+			else t.setIvalue(0);
+			currentSym.quaters.add(new Quat("<",t3,t1,t));
+			SemStack.add(t);
+		case ">=" :
+			if(v2>=v1) t.setIvalue(1);
+			else t.setIvalue(0);
+			currentSym.quaters.add(new Quat(">=",t3,t1,t));
+			SemStack.add(t);
+		case "<=" :
+			if(v2<=v1) t.setIvalue(1);
+			else t.setIvalue(0);
+			currentSym.quaters.add(new Quat("<=",t3,t1,t));
+			SemStack.add(t);
+		case "==" :
+			if(v2==v1) t.setIvalue(1);
+			else t.setIvalue(0);
+			currentSym.quaters.add(new Quat("==",t3,t1,t));
+			SemStack.add(t);
+		case "!=" :
+			if(v2<v1) t.setIvalue(1);
+			else t.setIvalue(0);
+			currentSym.quaters.add(new Quat("!=",t3,t1,t));
+			SemStack.add(t);
+		}
+	}
 	
 }

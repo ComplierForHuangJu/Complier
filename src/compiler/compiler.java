@@ -6,18 +6,6 @@ public class compiler {
 		Token t;
 		lex.addEnd();
 		lex.scan();
-		lex.scan();
-		lex.scan();
-		lex.scan();
-		lex.scan();
-		lex.scan();
-		lex.scan();	
-		lex.scan();
-		lex.scan();
-		lex.scan();
-		lex.scan();
-		lex.scan();
-		lex.scan();
 		t=lex.scan();
 		System.out.print("1");
 

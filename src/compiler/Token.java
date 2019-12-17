@@ -1,4 +1,4 @@
-package compiler;
+	package compiler;
 
 public class Token {
 
@@ -44,6 +44,11 @@ public class Token {
 	}
 	/*********************************************/
 	
+	//¹¹Ôìº¯Êý
+	public Token() {
+		
+	}
+
 	public TYPE gettype() {
 		return type;
 	}
