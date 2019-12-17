@@ -11,7 +11,7 @@ public class Symbol {
 	 * 4---变量
 	 * 
 	 * name---标识符名字
-	 * type---标识符类型(0--int,1--float,2--char)
+	 * type---标识符类型(0--int,1--float,2--char,3--数组（数组类型在Array中显示）)
 	 * cate---标识符种类
 	 * addr---标识符(函数--函数表下标/常量--值/类型--长度/域名--长度/变量--相对地址)
 	 * isInit---检查是否被初始化

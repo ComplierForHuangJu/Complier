@@ -23,6 +23,7 @@ public class Token {
 	 * svalue---若是关键字/标识符/字符常量/字符串常量/界符 ,则此变量为其值
 	 * ivalue---若是整型数字变量 ,则此变量为其值
 	 * fvalue---若是实型数字常量,则此变量为其值
+	 * isTemp---是否是临时变量
 	 * */
 	private TYPE type;
 	private int index;
@@ -31,6 +32,8 @@ public class Token {
 	private String svalue;
 	private int ivalue;
 	private float fvalue;
+	
+	public boolean isTemp = false;
 	
 	/********新添加的关于活跃信息生成部分的成员变量********/
 	
