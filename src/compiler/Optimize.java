@@ -19,7 +19,7 @@ import compiler.Token.TYPE;
 public class Optimize {
 	
 	/* 优化后的四元式序列  */
-	public ArrayList<Quat> _opQuat;
+	public static ArrayList<Quat> _opQuat;
 	
 	/* 移进四元式下标   */
 	public int _index;
