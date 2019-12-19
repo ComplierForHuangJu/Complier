@@ -17,7 +17,7 @@ import compiler.Token.TYPE;
 public class ActiveInf {
 
 	/* 活跃信息生成表  */
-	private HashMap<Token,Character> SYMBL;
+	private HashMap<String,Boolean> SYMBL;
 	
 	/* 活跃信息生成栈  */
 	private Stack<Token> stack;
@@ -27,7 +27,7 @@ public class ActiveInf {
 	 * @param quatList
 	 */
 	private void initTable(ArrayList<Quat> quatList) {
-		SYMBL = new HashMap<Token, Character>();
+		SYMBL = new HashMap<String, Boolean>();
 		for(int i = quatList.size() - 1; i >= 0;i--) {
 			//先将操作数放入到Map中
 			Quat quat = quatList.get(i);
@@ -35,6 +35,7 @@ public class ActiveInf {
 			add(quat.ope2);
 			add(quat.ope1);		
 		}
+
 	}
 	
 	
@@ -44,11 +45,13 @@ public class ActiveInf {
 	 */
 	private void add(Token token) {
 		//如果表中没有当前变量
-		if(!SYMBL.containsKey(token) && token.gettype() == TYPE.i)
+		if(!SYMBL.containsKey(token.getSvalue()) && token.gettype() == TYPE.i) {
 			if(token.getSvalue().charAt(0) != 't')
-				SYMBL.put(token, 'y');
+				SYMBL.put(token.getSvalue(), true);
 			else
-				SYMBL.put(token, 'n');
+				SYMBL.put(token.getSvalue(), false);
+		}	
+			
 	}
 	
 	/**
@@ -63,21 +66,33 @@ public class ActiveInf {
 		for(int i = quatList.size() - 1; i >= 0;i--) {
 			Quat quat = quatList.get(i);
 			//先将四元式中的数据更新
-			quat.res.setIsActive(SYMBL.get(quat.res));
-			quat.ope2.setIsActive(SYMBL.get(quat.ope2));
-			quat.ope1.setIsActive(SYMBL.get(quat.ope1));
+			//处理非变量
+			if(SYMBL.containsKey(quat.res.getSvalue()))
+				quat.setActiveRes(SYMBL.get(quat.res.getSvalue()));
+			if(SYMBL.containsKey(quat.ope2.getSvalue()))
+				quat.setActiveOpe2(SYMBL.get(quat.ope2.getSvalue()));
+			if(SYMBL.containsKey(quat.ope1.getSvalue()))
+				quat.setActiveOpe1(SYMBL.get(quat.ope1.getSvalue()));
 			//再反写活跃信息表
 			//如果是res的话只需要改写n/y
-			if(SYMBL.get(quat.res) != 'n')
-				SYMBL.put(quat.res, 'n');
-			else
-				SYMBL.put(quat.res, 'y');
+			if(SYMBL.containsKey(quat.res.getSvalue()))
+				if(SYMBL.get(quat.res.getSvalue()))
+					SYMBL.put(quat.res.getSvalue(), false);
+				else
+					SYMBL.put(quat.res.getSvalue(), true);
 			
 			//如果是操作数的话，则改写当前序号
-			if(SYMBL.get(quat.ope2) != 'n')
-				SYMBL.put(quat.ope2, 'n');
-			else
-				SYMBL.put(quat.ope2, (char)(i + '0'));
+			if(SYMBL.containsKey(quat.ope2.getSvalue()))
+				if(SYMBL.get(quat.ope2.getSvalue()))
+					SYMBL.put(quat.ope2.getSvalue(), false);
+				else
+					SYMBL.put(quat.ope2.getSvalue(), true);
+			//如果是操作数的话，则改写当前序号
+			if(SYMBL.containsKey(quat.ope1.getSvalue()))
+				if(SYMBL.get(quat.ope1.getSvalue()))
+					SYMBL.put(quat.ope1.getSvalue(), false);
+				else
+					SYMBL.put(quat.ope1.getSvalue(), true);
 					
 		}
 	}
@@ -88,9 +103,18 @@ public class ActiveInf {
 	 * @param quatList
 	 * @return
 	 */
-	public HashMap<Token, Character> creatInf(ArrayList<Quat> quatList){
+	public HashMap<String, Boolean> creatInf(ArrayList<Quat> quatList){
 		initTable(quatList);
+		for(String token : SYMBL.keySet())
+			System.out.println(token + "\t" + SYMBL.get(token));
 		updata(quatList);
+//		System.out.println("四元式信息：");
+//		for(Quat quat : quatList) {
+//			System.out.println("("+quat.opc+","+quat.ope1.getSvalue()+"("+quat.isActiveOpe1()+"),"
+//					+quat.ope2.getSvalue()+"("+quat.isActiveOpe2()+"),"
+//					+quat.res.getSvalue()+"("+quat.isActiveRes()+") )"
+//					);
+//		}
 		return SYMBL;
 	}
 }

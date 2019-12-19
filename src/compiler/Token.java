@@ -55,6 +55,10 @@ public class Token {
 	public Token(String string) {
 		this.svalue = string;
 	}
+	public Token(TYPE i, String string) {
+		this.type = i;
+		this.svalue = string;
+	}
 	public TYPE gettype() {
 		return type;
 	}
